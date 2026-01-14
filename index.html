@@ -1,91 +1,107 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My GitHub Repos</title>
+    <title>srbee | GitHub Portfolio</title>
     <style>
         :root {
             --bg-color: #f6f8fa;
             --card-bg: #ffffff;
             --text-main: #24292e;
             --accent: #0969da;
+            --pages-btn: #2da44e;
             --border: #d0d7de;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
-            color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        .container {
-            width: 100%;
-            max-width: 600px;
+        .container { 
+            width: 100%; 
+            max-width: 500px; 
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
+        .header { 
+            text-align: center; 
+            margin-bottom: 25px; 
+            padding-top: 10px;
         }
+
+        h1 { margin-bottom: 5px; font-size: 1.5rem; }
 
         .tally-badge {
-            background: var(--accent);
+            background: var(--text-main);
             color: white;
-            padding: 5px 15px;
+            padding: 4px 12px;
             border-radius: 20px;
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 0.9rem;
         }
 
-        #repo-list {
-            list-style: none;
-            padding: 0;
-        }
+        #repo-list { list-style: none; padding: 0; margin: 0; }
 
         .repo-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 16px;
+            border-radius: 10px;
+            padding: 18px;
             margin-bottom: 12px;
-            transition: transform 0.1s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
         }
 
-        .repo-card:active {
-            transform: scale(0.98);
-        }
-
-        .repo-link {
+        .repo-name {
+            display: block;
             text-decoration: none;
             color: var(--accent);
-            font-weight: 600;
-            font-size: 1.1rem;
-            word-break: break-all;
+            font-weight: 700;
+            font-size: 1.15rem;
+            margin-bottom: 6px;
         }
 
-        .loading { text-align: center; color: #666; }
+        .description {
+            font-size: 0.9rem;
+            color: #57606a;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .pages-link {
+            display: inline-block;
+            background-color: var(--pages-btn);
+            color: white;
+            text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .loading { text-align: center; padding: 50px; color: #666; font-style: italic; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="header">
-            <h1 id="title">GitHub Repositories By srbee</h1>
-            <div id="tally" class="tally-badge">0 Repos</div>
+            <h1>@srbee Repositories</h1>
+            <span id="tally" class="tally-badge">Calculating...</span>
         </div>
 
-        <div id="loading" class="loading">Fetching data...</div>
+        <div id="loading" class="loading">Loading your projects...</div>
         <ul id="repo-list"></ul>
     </div>
- 
+
     <script>
-        // 1. CHANGE THIS TO YOUR USERNAME
+        // Hardcoded Username
         const username = 'srbee'; 
 
         async function fetchRepos() {
@@ -94,35 +110,39 @@
             const loadingElement = document.getElementById('loading');
 
             try {
-                // Fetching public repos (defaults to 30, use per_page=100 for more)
+                // Fetching up to 100 public repos sorted by most recently updated
                 const response = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=100`);
                 
                 if (!response.ok) throw new Error('User not found');
                 
                 const repos = await response.json();
                 
-                // Update Tally
+                // Update the Tally
                 tallyElement.innerText = `${repos.length} Public Repos`;
                 loadingElement.style.display = 'none';
 
-                // List Names
                 repos.forEach(repo => {
                     const li = document.createElement('li');
                     li.className = 'repo-card';
+
+                    // Check if repo has GitHub Pages enabled
+                    let pagesHtml = '';
+                    if (repo.has_pages) {
+                        const pagesUrl = `https://${username}.github.io/${repo.name}/`;
+                        pagesHtml = `<a href="${pagesUrl}" target="_blank" class="pages-link">🚀 View Live Demo</a>`;
+                    }
+
                     li.innerHTML = `
-                        <a href="${repo.html_url}" target="_blank" class="repo-link">
-                            ${repo.name}
-                        </a>
-                        <p style="margin: 8px 0 0; font-size: 0.9rem; color: #57606a;">
-                            ${repo.description || 'No description provided.'}
-                        </p>
+                        <a href="${repo.html_url}" target="_blank" class="repo-name">${repo.name}</a>
+                        <p class="description">${repo.description || 'No description available for this repository.'}</p>
+                        ${pagesHtml}
                     `;
                     listElement.appendChild(li);
                 });
 
-            } catch (error) {
-                loadingElement.innerText = "Error loading repositories. Check the username.";
-                console.error(error);
+            } catch (err) {
+                loadingElement.innerText = "Failed to load repos. Please check your connection.";
+                console.error(err);
             }
         }
 
