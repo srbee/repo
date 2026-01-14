@@ -1,1 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My GitHub Repos</title>
+    <style>
+        :root {
+            --bg-color: #f6f8fa;
+            --card-bg: #ffffff;
+            --text-main: #24292e;
+            --accent: #0969da;
+            --border: #d0d7de;
+        }
 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .tally-badge {
+            background: var(--accent);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        #repo-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .repo-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: transform 0.1s ease;
+        }
+
+        .repo-card:active {
+            transform: scale(0.98);
+        }
+
+        .repo-link {
+            text-decoration: none;
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 1.1rem;
+            word-break: break-all;
+        }
+
+        .loading { text-align: center; color: #666; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1 id="title">GitHub Repositories</h1>
+            <div id="tally" class="tally-badge">0 Repos</div>
+        </div>
+
+        <div id="loading" class="loading">Fetching data...</div>
+        <ul id="repo-list"></ul>
+    </div>
+
+    <script>
+        // 1. CHANGE THIS TO YOUR USERNAME
+        const username = 'srbee'; 
+
+        async function fetchRepos() {
+            const listElement = document.getElementById('repo-list');
+            const tallyElement = document.getElementById('tally');
+            const loadingElement = document.getElementById('loading');
+
+            try {
+                // Fetching public repos (defaults to 30, use per_page=100 for more)
+                const response = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=100`);
+                
+                if (!response.ok) throw new Error('User not found');
+                
+                const repos = await response.json();
+                
+                // Update Tally
+                tallyElement.innerText = `${repos.length} Public Repos`;
+                loadingElement.style.display = 'none';
+
+                // List Names
+                repos.forEach(repo => {
+                    const li = document.createElement('li');
+                    li.className = 'repo-card';
+                    li.innerHTML = `
+                        <a href="${repo.html_url}" target="_blank" class="repo-link">
+                            ${repo.name}
+                        </a>
+                        <p style="margin: 8px 0 0; font-size: 0.9rem; color: #57606a;">
+                            ${repo.description || 'No description provided.'}
+                        </p>
+                    `;
+                    listElement.appendChild(li);
+                });
+
+            } catch (error) {
+                loadingElement.innerText = "Error loading repositories. Check the username.";
+                console.error(error);
+            }
+        }
+
+        fetchRepos();
+    </script>
+</body>
+</html>
